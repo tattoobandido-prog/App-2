@@ -161,6 +161,10 @@ button:focus-visible, a:focus-visible, .check input:focus-visible { outline: 2px
         <input type="checkbox" id="foto" name="foto">
         <span>📷 Tengo una foto o dibujo de ejemplo para enviar</span>
       </label>
+      <label class="check" for="promos">
+        <input type="checkbox" id="promos" name="promos">
+        <span>Quiero recibir recordatorios de mi turno y promociones de Tattoo Lovers por WhatsApp</span>
+      </label>
     </form>
 
     <div class="resumen" id="resumen"></div>
@@ -276,7 +280,29 @@ button:focus-visible, a:focus-visible, .check input:focus-visible { outline: 2px
       $("info-foto").hidden = !$("foto").checked;
     }
   }
-  $("enviar").addEventListener("click", (ev) => { if ($("enviar").getAttribute("aria-disabled") === "true") ev.preventDefault(); });
+  // Guarda los datos del cliente en la hoja de Google (si está configurada)
+  function registrar() {
+    if (!DATOS.registro) return;
+    const c = estado.cuerpo;
+    const fila = JSON.stringify({
+      nombre: $("nombre").value.trim(),
+      telefono: $("telefono").value.trim(),
+      zona: c.zona ? `${c.zona} (${c.lado.toLowerCase()})` : "",
+      tamano: estado.tamano || "",
+      medida: c.marca ? `${c.marca.ancho_cm} x ${c.marca.alto_cm} cm` : "",
+      estilo: estado.estilo || "",
+      idea: $("idea").value.trim(),
+      promos: $("promos").checked ? "Sí" : "No",
+    });
+    try {
+      const ok = navigator.sendBeacon && navigator.sendBeacon(DATOS.registro, new Blob([fila], { type: "text/plain" }));
+      if (!ok) fetch(DATOS.registro, { method: "POST", mode: "no-cors", body: fila, keepalive: true }).catch(() => {});
+    } catch (e) { /* si falla, la cotización por WhatsApp sigue funcionando */ }
+  }
+  $("enviar").addEventListener("click", (ev) => {
+    if ($("enviar").getAttribute("aria-disabled") === "true") { ev.preventDefault(); return; }
+    registrar();
+  });
 
   pintar();
 })();

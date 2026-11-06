@@ -13,6 +13,9 @@ import streamlit.components.v1 as components
 # ================== CONFIGURACIÓN ==================
 WHATSAPP_NUMBER = "595972815410"  # <-- tu número con código de país, sin + ni espacios
 STUDIO_NAME = "Tattoo Lovers"
+# Dirección de la hoja de Google (Apps Script) donde se guardan los clientes.
+# Déjala vacía ("") para no guardar nada. Ver registro/LEEME.md
+REGISTRO_URL = ""
 BASE = Path(__file__).parent
 CARPETA_ESTILOS = BASE / "estilos"  # pon aquí las fotos de ejemplo de cada estilo
 
