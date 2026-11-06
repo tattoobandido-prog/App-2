@@ -1,13 +1,20 @@
-# Agenda del mes (calendario del iPhone / iCloud)
+# Agenda del mes (Google Calendar o calendario del iPhone)
 
 La página muestra un calendario del mes con los días **libres**, **con lugar** y **ocupados**.
 Solo se publican los horarios ocupados: **nunca** los nombres ni los detalles de tus turnos.
-Tú anotas los turnos en el Calendario del iPhone como siempre; la página se actualiza sola
+Tú anotas los turnos en tu calendario como siempre; la página se actualiza sola
 cada 30 minutos (GitHub lo hace automáticamente con `.github/workflows/agenda.yml`).
 
 ## Pasos (una sola vez)
 
-### 1. En el iPhone: hacer público el calendario y copiar el enlace
+### 1a. Con Google Calendar (recomendado)
+1. Entra a **calendar.google.com** (en el celular: abre el navegador y pide la "versión para computadora").
+2. ⚙️ **Configuración** → a la izquierda, en "Configuración de mis calendarios", toca tu calendario
+   (o uno aparte, por ejemplo "Turnos Tattoo Lovers").
+3. Baja hasta **"Integrar el calendario"** → **"Dirección secreta en formato iCal"** → copia el enlace.
+   No hace falta hacer público el calendario.
+
+### 1b. Con el calendario del iPhone (iCloud)
 1. Abre la app **Calendario** → toca **Calendarios** (abajo).
 2. Toca la **ⓘ** junto al calendario donde anotas los turnos (tiene que estar en **iCloud**).
 3. Activa **Calendario público** → toca **Compartir enlace…** → **Copiar**.
