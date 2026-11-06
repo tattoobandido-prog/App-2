@@ -105,8 +105,36 @@ input:focus, textarea:focus { outline: none; border-color: var(--rojo); box-shad
 /* ---- resumen y envío ---- */
 .ir-agenda { display: inline-block; margin-top: 12px; color: var(--hueso); text-decoration: none; border: 1px solid var(--linea); background: var(--carbon); border-radius: 999px; padding: 7px 16px; font-size: 15px; font-weight: 600; }
 .ir-agenda:hover { border-color: var(--rojo); }
-.agenda-marco { background: var(--hueso); border-radius: 14px; overflow: hidden; border: 1px solid var(--linea); }
-.agenda-marco iframe { display: block; width: 100%; height: 560px; border: 0; }
+.cal { background: var(--carbon); border: 1px solid var(--linea); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px; }
+.cal-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cal-cab strong { font-size: 19px; text-transform: capitalize; }
+.cal-cab button { appearance: none; font: inherit; font-size: 22px; line-height: 1; color: var(--hueso); background: #1d1d1d; border: 1px solid var(--linea); border-radius: 999px; width: 40px; height: 40px; cursor: pointer; }
+.cal-cab button:disabled { opacity: .3; cursor: default; }
+.cal-dias, .cal-grilla { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.cal-dias span { text-align: center; color: var(--gris); font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
+.dia {
+  appearance: none; font: inherit; font-size: 16px; font-weight: 700; aspect-ratio: 1; min-width: 0; border-radius: 10px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; position: relative; font-variant-numeric: tabular-nums;
+  border: 1px solid transparent; transition: transform .1s;
+}
+.dia.libre { background: var(--hueso); color: var(--tinta); }
+.dia.parcial { background: var(--hueso); color: var(--tinta); }
+.dia.parcial::after { content: ""; position: absolute; left: 18%; right: 18%; bottom: 14%; height: 4px; border-radius: 2px; background: var(--rojo); }
+.dia.lleno { background: var(--rojo); color: var(--blanco); }
+.dia.pasado, .dia.vacio { background: transparent; color: #5b5453; cursor: default; font-weight: 400; }
+.dia.vacio { visibility: hidden; }
+.dia.hoy { outline: 2px solid var(--rojo-claro); outline-offset: 2px; }
+.dia[aria-pressed="true"] { transform: scale(1.06); box-shadow: 0 0 0 3px var(--tinta), 0 0 0 5px var(--hueso); }
+.leyenda { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--gris); font-size: 14px; }
+.leyenda i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; background: var(--hueso); position: relative; }
+.leyenda i.parcial { box-shadow: inset 0 -4px 0 var(--rojo); }
+.leyenda i.lleno { background: var(--rojo); }
+.cal-detalle { border-top: 1px solid var(--linea); padding-top: 10px; display: flex; flex-direction: column; gap: 4px; }
+.franja { display: flex; gap: 10px; font-variant-numeric: tabular-nums; }
+.franja b { min-width: 76px; }
+.franja.libre b { color: var(--hueso); }
+.franja.ocupado b { color: var(--rojo-claro); }
+.cal-act { color: var(--gris); font-size: 13px; margin: 0; }
 .leyenda { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0 0 12px; color: var(--gris); font-size: 15px; }
 .leyenda i { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -2px; margin-right: 6px; }
 .resumen { margin-top: 18px; background: var(--carbon); border: 1px solid var(--linea); border-radius: 14px; padding: 14px 18px; display: flex; flex-direction: column; gap: 6px; }
@@ -178,8 +206,19 @@ button:focus-visible, a:focus-visible, .check input:focus-visible { outline: 2px
 
   <section id="agenda" hidden>
     <h2>📅 Agenda del mes</h2>
-    <p class="nota">Los bloques de color son horarios <b>ocupados</b>; los espacios en blanco están <b>libres</b>. Para reservar, envía tu cotización y coordinamos el día por WhatsApp.</p>
-    <div class="agenda-marco"><iframe id="agenda-cal" title="Agenda del mes de Tattoo Lovers" loading="lazy"></iframe></div>
+    <p class="nota">Toca un día para ver sus horarios. Para reservar, envía tu cotización y coordinamos el día por WhatsApp.</p>
+    <div class="cal">
+      <div class="cal-cab">
+        <button type="button" id="cal-ant" aria-label="Mes anterior">‹</button>
+        <strong id="cal-mes" aria-live="polite"></strong>
+        <button type="button" id="cal-sig" aria-label="Mes siguiente">›</button>
+      </div>
+      <div class="cal-dias" aria-hidden="true"><span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sá</span><span>Do</span></div>
+      <div class="cal-grilla" id="cal-grilla"></div>
+      <div class="leyenda"><span><i></i>Libre</span><span><i class="parcial"></i>Con lugar</span><span><i class="lleno"></i>Ocupado</span></div>
+      <div class="cal-detalle" id="cal-detalle"></div>
+      <p class="cal-act" id="cal-act"></p>
+    </div>
   </section>
 </main>
 
@@ -313,17 +352,83 @@ button:focus-visible, a:focus-visible, .check input:focus-visible { outline: 2px
     registrar();
   });
 
-  // Agenda del mes (Google Calendar, solo lectura y solo ocupado/libre)
-  if (DATOS.agenda) {
-    const p = new URLSearchParams({
-      src: DATOS.agenda, ctz: DATOS.zona_horaria, mode: "MONTH", hl: "es",
-      showTitle: "0", showPrint: "0", showTabs: "0", showCalendars: "0", showTz: "0", wkst: "2",
-      bgcolor: "#ffffff", color: "#e10600",
-    });
-    $("agenda-cal").src = "https://calendar.google.com/calendar/embed?" + p.toString();
-    $("agenda").hidden = false;
-    $("ir-agenda").hidden = false;
+  // ---------- Agenda del mes (agenda.json, solo horarios ocupados) ----------
+  const MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
+  const DIAS = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+  const fecha = (t) => { const [d, h] = t.split("T"); const [Y, M, D] = d.split("-").map(Number); const [hh, mm] = (h || "00:00").split(":").map(Number); return new Date(Y, M - 1, D, hh, mm); };
+  const hhmm = (d) => String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  const mismoDia = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+  function franjasDelDia(dia, ocupado) {
+    const [h0, h1] = DATOS.horario;
+    const ini = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate(), h0), fin = new Date(dia.getFullYear(), dia.getMonth(), dia.getDate(), h1);
+    const ocup = ocupado.map(([a, b]) => [a < ini ? ini : a, b > fin ? fin : b]).filter(([a, b]) => a < b);
+    const franjas = []; let cursor = ini;
+    for (const [a, b] of ocup) {
+      if (a > cursor) franjas.push({ libre: true, a: cursor, b: a });
+      franjas.push({ libre: false, a, b });
+      if (b > cursor) cursor = b;
+    }
+    if (cursor < fin) franjas.push({ libre: true, a: cursor, b: fin });
+    const total = fin - ini, usado = ocup.reduce((s, [a, b]) => s + (b - a), 0);
+    return { franjas, estado: usado >= total * 0.95 ? "lleno" : usado > 0 ? "parcial" : "libre" };
   }
+
+  function iniciarAgenda(ag) {
+    const ocupado = ag.ocupado.map(([a, b]) => [fecha(a), fecha(b)]);
+    const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+    const hasta = fecha(ag.hasta);
+    let mes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+    let elegido = null;
+
+    function detalle(dia) {
+      const { franjas } = franjasDelDia(dia, ocupado);
+      const cont = $("cal-detalle"); cont.replaceChildren();
+      const t = document.createElement("strong"); const nom = DIAS[dia.getDay()]; t.textContent = `${nom[0].toUpperCase() + nom.slice(1)} ${dia.getDate()} de ${MESES[dia.getMonth()]}`; cont.appendChild(t);
+      franjas.forEach((f) => {
+        const d = document.createElement("div"); d.className = "franja " + (f.libre ? "libre" : "ocupado");
+        const b = document.createElement("b"); b.textContent = f.libre ? "Libre" : "Ocupado";
+        d.append(b, `${hhmm(f.a)} – ${hhmm(f.b)}`); cont.appendChild(d);
+      });
+    }
+
+    function dibujarMes() {
+      $("cal-mes").textContent = `${MESES[mes.getMonth()]} ${mes.getFullYear()}`;
+      $("cal-ant").disabled = mes <= new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+      $("cal-sig").disabled = new Date(mes.getFullYear(), mes.getMonth() + 1, 1) > hasta;
+      const g = $("cal-grilla"); g.replaceChildren();
+      const huecos = (mes.getDay() + 6) % 7;   // la semana empieza el lunes
+      for (let i = 0; i < huecos; i++) { const v = document.createElement("span"); v.className = "dia vacio"; g.appendChild(v); }
+      const ultimo = new Date(mes.getFullYear(), mes.getMonth() + 1, 0).getDate();
+      for (let n = 1; n <= ultimo; n++) {
+        const dia = new Date(mes.getFullYear(), mes.getMonth(), n);
+        const b = document.createElement("button"); b.type = "button"; b.textContent = n;
+        if (dia < hoy || dia > hasta) {
+          b.className = "dia pasado"; b.disabled = true;
+        } else {
+          const { estado } = franjasDelDia(dia, ocupado);
+          b.className = "dia " + estado + (mismoDia(dia, hoy) ? " hoy" : "");
+          b.setAttribute("aria-label", `${n} de ${MESES[mes.getMonth()]}: ${estado === "lleno" ? "ocupado" : estado === "parcial" ? "con lugar" : "libre"}`);
+          b.setAttribute("aria-pressed", String(!!elegido && mismoDia(dia, elegido)));
+          b.addEventListener("click", () => { elegido = dia; dibujarMes(); detalle(dia); });
+        }
+        g.appendChild(b);
+      }
+    }
+
+    $("cal-ant").addEventListener("click", () => { mes = new Date(mes.getFullYear(), mes.getMonth() - 1, 1); dibujarMes(); });
+    $("cal-sig").addEventListener("click", () => { mes = new Date(mes.getFullYear(), mes.getMonth() + 1, 1); dibujarMes(); });
+    elegido = hoy;
+    dibujarMes(); detalle(hoy);
+    const act = fecha(ag.actualizado);
+    $("cal-act").textContent = `Actualizado el ${act.getDate()} de ${MESES[act.getMonth()]} a las ${hhmm(act)}.`;
+    $("agenda").hidden = false; $("ir-agenda").hidden = false;
+  }
+
+  fetch("agenda.json", { cache: "no-store" })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((ag) => { if (ag && Array.isArray(ag.ocupado)) iniciarAgenda(ag); })
+    .catch(() => { /* sin agenda configurada: la sección queda oculta */ });
 
   pintar();
 })();
