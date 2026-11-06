@@ -161,10 +161,6 @@ button:focus-visible, a:focus-visible, .check input:focus-visible { outline: 2px
         <input type="checkbox" id="foto" name="foto">
         <span>📷 Tengo una foto o dibujo de ejemplo para enviar</span>
       </label>
-      <label class="check" for="promos">
-        <input type="checkbox" id="promos" name="promos">
-        <span>Quiero recibir recordatorios de mi turno y promociones de Tattoo Lovers por WhatsApp</span>
-      </label>
     </form>
 
     <div class="resumen" id="resumen"></div>
@@ -292,7 +288,7 @@ button:focus-visible, a:focus-visible, .check input:focus-visible { outline: 2px
       medida: c.marca ? `${c.marca.ancho_cm} x ${c.marca.alto_cm} cm` : "",
       estilo: estado.estilo || "",
       idea: $("idea").value.trim(),
-      promos: $("promos").checked ? "Sí" : "No",
+      promos: $("promos") && $("promos").checked ? "Sí" : "No",
     });
     try {
       const ok = navigator.sendBeacon && navigator.sendBeacon(DATOS.registro, new Blob([fila], { type: "text/plain" }));
