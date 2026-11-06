@@ -103,6 +103,12 @@ input:focus, textarea:focus { outline: none; border-color: var(--rojo); box-shad
 .check input { width: 20px; height: 20px; accent-color: var(--rojo); margin-top: 2px; flex: none; }
 
 /* ---- resumen y envío ---- */
+.ir-agenda { display: inline-block; margin-top: 12px; color: var(--hueso); text-decoration: none; border: 1px solid var(--linea); background: var(--carbon); border-radius: 999px; padding: 7px 16px; font-size: 15px; font-weight: 600; }
+.ir-agenda:hover { border-color: var(--rojo); }
+.agenda-marco { background: var(--hueso); border-radius: 14px; overflow: hidden; border: 1px solid var(--linea); }
+.agenda-marco iframe { display: block; width: 100%; height: 560px; border: 0; }
+.leyenda { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 0 0 12px; color: var(--gris); font-size: 15px; }
+.leyenda i { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: -2px; margin-right: 6px; }
 .resumen { margin-top: 18px; background: var(--carbon); border: 1px solid var(--linea); border-radius: 14px; padding: 14px 18px; display: flex; flex-direction: column; gap: 6px; }
 .resumen b { color: var(--rojo-claro); }
 .enviar {
@@ -123,6 +129,7 @@ button:focus-visible, a:focus-visible, .check input:focus-visible { outline: 2px
   <header class="hero">
     <img class="logo" src="logo.webp" alt="Tattoo Lovers">
     <p class="sub">Pide tu cotización en 4 pasos y recibe respuesta por WhatsApp</p>
+    <a class="ir-agenda" id="ir-agenda" href="#agenda" hidden>📅 Ver mis días libres</a>
     <div class="linea-roja"></div>
   </header>
 
@@ -167,6 +174,12 @@ button:focus-visible, a:focus-visible, .check input:focus-visible { outline: 2px
     <a class="enviar" id="enviar" href="#" target="_blank" rel="noopener" aria-disabled="true">📲 Enviar cotización por WhatsApp</a>
     <div class="caja aviso" id="falta"></div>
     <div class="caja info" id="info-foto" hidden>📎 Cuando se abra WhatsApp, envía el mensaje y después adjunta tu foto en el mismo chat (toca el clip 📎 o la cámara).</div>
+  </section>
+
+  <section id="agenda" hidden>
+    <h2>📅 Agenda del mes</h2>
+    <p class="nota">Los bloques de color son horarios <b>ocupados</b>; los espacios en blanco están <b>libres</b>. Para reservar, envía tu cotización y coordinamos el día por WhatsApp.</p>
+    <div class="agenda-marco"><iframe id="agenda-cal" title="Agenda del mes de Tattoo Lovers" loading="lazy"></iframe></div>
   </section>
 </main>
 
@@ -299,6 +312,18 @@ button:focus-visible, a:focus-visible, .check input:focus-visible { outline: 2px
     if ($("enviar").getAttribute("aria-disabled") === "true") { ev.preventDefault(); return; }
     registrar();
   });
+
+  // Agenda del mes (Google Calendar, solo lectura y solo ocupado/libre)
+  if (DATOS.agenda) {
+    const p = new URLSearchParams({
+      src: DATOS.agenda, ctz: DATOS.zona_horaria, mode: "MONTH", hl: "es",
+      showTitle: "0", showPrint: "0", showTabs: "0", showCalendars: "0", showTz: "0", wkst: "2",
+      bgcolor: "#ffffff", color: "#e10600",
+    });
+    $("agenda-cal").src = "https://calendar.google.com/calendar/embed?" + p.toString();
+    $("agenda").hidden = false;
+    $("ir-agenda").hidden = false;
+  }
 
   pintar();
 })();

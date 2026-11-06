@@ -20,7 +20,7 @@ datos = {}
 for nodo in arbol.body:
     if isinstance(nodo, ast.Assign) and isinstance(nodo.targets[0], ast.Name):
         nombre = nodo.targets[0].id
-        if nombre in {"WHATSAPP_NUMBER", "STUDIO_NAME", "REGISTRO_URL", "TAMANOS", "ESTILOS", "EXTENSIONES"}:
+        if nombre in {"WHATSAPP_NUMBER", "STUDIO_NAME", "REGISTRO_URL", "AGENDA_ID", "ZONA_HORARIA", "TAMANOS", "ESTILOS", "EXTENSIONES"}:
             datos[nombre] = ast.literal_eval(nodo.value)
 
 estilos = []
@@ -54,6 +54,8 @@ html = (plantilla
         .replace("__DATOS__", json.dumps({
             "whatsapp": datos["WHATSAPP_NUMBER"],
             "registro": datos.get("REGISTRO_URL", ""),
+            "agenda": datos.get("AGENDA_ID", ""),
+            "zona_horaria": datos.get("ZONA_HORARIA", "America/Asuncion"),
             "estudio": datos["STUDIO_NAME"],
             "tamanos": datos["TAMANOS"],
             "estilos": estilos,

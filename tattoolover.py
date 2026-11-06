@@ -16,6 +16,10 @@ STUDIO_NAME = "Tattoo Lovers"
 # Dirección de la hoja de Google (Apps Script) donde se guardan los clientes.
 # Déjala vacía ("") para no guardar nada. Ver registro/LEEME.md
 REGISTRO_URL = ""
+# ID del Google Calendar que se muestra como "Agenda del mes" (solo ocupado/libre).
+# Déjalo vacío ("") para no mostrar la agenda. Ver agenda/LEEME.md
+AGENDA_ID = ""
+ZONA_HORARIA = "America/Asuncion"
 BASE = Path(__file__).parent
 CARPETA_ESTILOS = BASE / "estilos"  # pon aquí las fotos de ejemplo de cada estilo
 
